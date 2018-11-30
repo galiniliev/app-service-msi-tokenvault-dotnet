@@ -27,6 +27,7 @@ namespace WebAppTokenVault.Controllers
             string tokenResourceUrl = ConfigurationManager.AppSettings["tokenResourceUrl"];
             ViewBag.LoginLink = $"{tokenResourceUrl}/login?PostLoginRedirectUrl={this.Request.Url}";
 
+            string responseString = null;
             try
             {
                 string apiToken = await azureServiceTokenProvider.GetAccessTokenAsync(TokenVaultResource);
@@ -35,7 +36,7 @@ namespace WebAppTokenVault.Controllers
 
                 var response = await client.SendAsync(request);
 
-                var responseString = await response.Content.ReadAsStringAsync();
+                responseString = await response.Content.ReadAsStringAsync();
 
                 var token = response.IsSuccessStatusCode ? JsonConvert.DeserializeObject<Token>(responseString)?.Value?.AccessToken : responseString;
 
@@ -45,7 +46,7 @@ namespace WebAppTokenVault.Controllers
             }
             catch (Exception exp)
             {
-                ViewBag.Error = $"Something went wrong: {exp.InnerException?.Message}";
+                ViewBag.Error = $"Something went wrong: {exp} <br/> {responseString}";
             }
 
             ViewBag.Principal = azureServiceTokenProvider.PrincipalUsed != null ? $"Principal Used: {azureServiceTokenProvider.PrincipalUsed}" : string.Empty;
